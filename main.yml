@@ -1,0 +1,55 @@
+- hosts: prometheus
+  vars:
+    home_dir: "/home/vagrant"
+
+  tasks:
+    - name: Install Git
+      apt: name=git state=present
+
+    - name: Install Unzip
+      apt: name=unzip state=present
+
+    - name: Install apt-transport-https
+      apt: name=apt-transport-https state=present
+
+    - name: Install ca certificates
+      apt: name=ca-certificates state=present
+
+    - name: Install python-pip
+      apt: name=python-pip state=present
+
+    - name: Install python-dev 
+      apt: name=python-dev state=present
+    
+    - name: Install build-essential
+      apt: name=build-essential state=present
+
+    - name: Add apt-key for docker
+      apt_key: keyserver=hkp://p80.pool.sks-keyservers.net:80 id=58118E89F3A912897C070ADBF76221572C52609D
+
+    - name: Copy sources.list
+      copy: src=include/docker.list dest=/etc/apt/sources.list.d/docker.list
+
+    - name: Install docker engine
+      apt: name=docker-engine update_cache=yes state=present
+
+    - name: Install docker-py
+      pip: name=docker-py
+
+    - name: Download prometheus
+      unarchive: src=https://github.com/prometheus/prometheus/releases/download/0.19.1/prometheus-0.19.1.linux-amd64.tar.gz dest={{home_dir}} copy=no
+
+    - name: Download node_exporter
+      unarchive: src=https://github.com/prometheus/node_exporter/releases/download/0.12.0/node_exporter-0.12.0.linux-amd64.tar.gz dest={{home_dir}} copy=no
+
+    - name: Download blackbox_exporter
+      unarchive: src=https://github.com/prometheus/blackbox_exporter/releases/download/0.1.0/blackbox_exporter-0.1.0.linux-amd64.tar.gz dest={{home_dir}} copy=no
+
+    - name: Install prometheus client
+      pip: name=prometheus_client
+
+    - name: Grafana
+      docker:
+        name: grafana
+        image: grafana/grafana:3.0.1
+        state: present
